@@ -2,192 +2,134 @@
  * Here we look at Objects, inheritance, and all that jazz
  */
 (function() {
+    //arrays
 
-var obj = {
-    my: 'object',
-    aNumber: 1,
-    'a key with spaces': [1, 2, 3],
-    action: function() {
-        return 10;
+    //forEach, map, reduce
+
+    var a = [1, 2, 3, 4, 5];
+
+    console.warn('forEach');
+    a.forEach(function(val, idx) {
+        console.log(idx + '=> ' + val);
+    });
+
+    console.warn('map');
+    var mappedA = a.map(function(val) {
+        return val * 2;
+    });
+
+    console.log(mappedA);
+
+    console.warn('reduce');
+    var reducedA = a.reduce(function(memo, val) {
+        return memo + val;
+    }, 0);
+
+    console.log(reducedA);
+
+    console.warn('combined');
+    var mappedAndReduced = a.map(function(val) {
+        return val * 2;
+    }).reduce(function(memo, val) {
+        return memo + val;
+    }, 0);
+
+    console.log(mappedAndReduced);
+
+    console.warn('animals');
+    var animals = getAnimals();
+    animals.forEach(function(animal) {
+        console.log(animal.name);
+    });
+
+    function showAnimal(animal) {
+        console.log(animal.name + ' is ' + animal.age + ' years old, weight:' + animal.age);
     }
-};
 
-console.warn('Object');
-console.log(obj.my);
-console.log(obj['a key with spaces']);
+    console.warn('showAnimal');
+    animals.forEach(showAnimal);
 
-//for in
-console.warn('For in');
-for(var key in obj) {
-    console.log(key, obj[key]);
-}
+    console.warn('Old animals');
+    var oldAnimals = animals.filter(function(animal) {
+        return animal.age > 3;
+    });
 
-//constructor
-function Animal(name, a) {
-    //Private properties
-    var age = a;
+    oldAnimals.forEach(showAnimal);
 
-    //Public properties
-    this.name = name;
-    this.type = 'animal';
-
-    //Public function, with access to private variables
-    this.sayHello = function() {
-        console.log('Hi, my name is ' + this.name + ', ' + sayAge());
+    function ageFilter(age) {
+        return function(animal) {
+            return animal.age > age;
+        };
     }
 
-    //Private function
-    function sayAge() {
-        return 'I am ' + age + ' years old';
+    console.warn('age filter');
+    animals.filter(ageFilter(2)).forEach(showAnimal);
+
+    function customFilter(field, min) {
+        return function(animal) {
+            return animal[field] > min;
+        };
     }
-}
 
-var fred = new Animal('fred', 25);
+    console.warn('custom animals');
+    animals.filter(customFilter('height', 50)).forEach(showAnimal);
 
-console.warn('Constructor');
-fred.sayHello();
+    console.warn('Cats');
+    animals.filter(function(animal) {
+        return animal instanceof Cat;
+    }).forEach(showAnimal);
 
-fred.name = 'Alex';
+    console.warn('Animal names');
+    animals.map(function(animal) {
+        return animal.name;
+    }).forEach(function(name) {
+        console.log(name);
+    });
 
-fred.sayHello();
+    console.warn('Change');
+    animals.filter(function(animal) {
+        return animal instanceof Cat;
+    }).map(function(animal) {
+        return new Dog(animal.name, animal.age, animal.weight, animal.height, 100);
+    }).forEach(showAnimal);
 
-console.warn('instanceof');
-console.log(fred instanceof Animal);
 
-//prototype
-//Public function, only access to public properties
-Animal.prototype.walk = function() {
-    console.log(this.name + ' has gone for a walk');
-};
-
-console.warn('Prototype');
-fred.walk();
-
-Animal.prototype = {
-    walk: function() {
-        console.log('NO');
+    function getAnimals() {
+        return [
+            new Animal('Jim', 15, 100, 90),
+            new Cat('Spot', 1, 20, 30, 'grey'),
+            new Cat('Fluffy', 2, 20, 30, 'red'),
+            new Cat('Tails', 3, 20, 30, 'black'),
+            new Dog('Finn', 5, 85, 100, 50),
+            new Dog('Cooper', 5, 85, 100, 50),
+            new Dog('Toby', 5, 85, 100, 50)
+        ];
     }
-};
 
-console.warn('Walk again');
-fred.walk();
-
-console.warn('check instanceof');
-console.log(fred instanceof Animal);
-
-//inheritance
-function Cat(name, age) {
-    Animal.apply(this, arguments);
-    //Animal.apply(this, [name, age]);
-    //Animal.call(this, name, age);
-
-    //Overriding property
-    this.type = 'cat';
-}
-Cat.prototype = Object.create(Animal.prototype);
-Cat.prototype.constructor = Cat;
-
-var spot = new Cat('Spot', 5);
-spot.walk();
-
-Animal.prototype.run = function() {
-    console.log(this.name + ' is running very fast!');
-}
-
-spot.run();
-
-//Old school
-//Object.create
-function createObject( prototype ){
-    function f(){}
-    f.prototype = prototype;
-    return new f;
-}
-
-//hasownproperty
-console.warn('For in spot');
-for(var key in spot) {
-    console.log(key, obj[key]);
-}
-
-console.warn('For in spot only');
-for(var key in spot) {
-    if(spot.hasOwnProperty(key)) {
-        console.log(key, obj[key]);
+    function Animal(name, age, weight, height) {
+        this.name = name;
+        this.age = age;
+        this.weight = weight;
+        this.height = height;
     }
-}
 
-//mixins
-function shout() {
-    console.log('I AM A ' + this.type);
-}
+    function Cat(name, age, weight, height, color) {
+        Animal.apply(this, arguments);
+        this.color = color;
+        this.meow = function() {
+            console.log('meowwww');
+        };
+    }
+    Cat.prototype = Object.create(Animal.prototype);
 
-console.warn('Shout');
-shout();
+    function Dog(name, age, weight, height, tailLength) {
+        Animal.apply(this, arguments);
+        this.tailLength = tailLength;
+        this.woof = function() {
+            console.log('woof');
+        };
+    }
+    Dog.prototype = Object.create(Animal.prototype);
 
-Animal.prototype.shout = shout;
-
-console.warn('fred shout');
-spot.shout();
-
-//this
-
-Animal.prototype.walkLater = function() {
-    return function() {
-        this.walk();
-    };
-};
-
-var later = spot.walkLater();
-console.warn('later');
-//later();
-
-console.warn('tack it on');
-spot.later = later;
-spot.later();
-
-console.warn('apply later');
-later.apply(spot);
-
-Animal.prototype.walkLaterFixed = function() {
-    var that = this;
-    return function() {
-        that.walk();
-    };
-};
-
-console.warn('fixed later');
-later = spot.walkLaterFixed();
-later();
-
-//arrays
-
-//forEach, map, reduce
-
-var a = [1, 2, 3, 4, 5];
-
-a.forEach(function(val, idx) {
-    console.log(idx + '=> ' + val);
-});
-
-var mappedA = a.map(function(val) {
-    return val * 2;
-});
-
-console.log(mappedA);
-
-var reducedA = a.reduce(function(memo, val) {
-    return memo + val;
-}, 0);
-
-console.log(reducedA);
-
-var mappedAndReduced = a.map(function(val) {
-    return val * 2;
-}).reduce(function(memo, val) {
-    return memo + val;
-}, 0);
-
-console.log(mappedAndReduced);
 
 })();
